@@ -1,0 +1,29 @@
+.logo {
+    border-width: 7px;
+    border-style: solid;
+    border-color: red;
+    width: 70px;
+    margin-left: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+               
+}
+.label{
+    display: flex;
+    background-color: black;
+}
+
+.company-Label{
+    font-size: 70px;
+    padding-top: 15px;
+    color: rgb(221, 238, 248);
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    padding-left: 10px;
+    text-decoration: underline;
+    text-decoration-color: red;
+    letter-spacing: 1px;
+}
+
+.testing{
+    background-color: grey;
+}
