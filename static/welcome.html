@@ -21,13 +21,34 @@
             
             <div class = "parameters">
                 <div id = "paremetersBasic">
-                    <button type="button" class="collapsable1">Open Parameters Basic</button>
                     <div class="content1">
-
+                        <button type="button">Previous Output?</button>
+                        <form class="inputField" action="InputPrev" method="Post">
+                            <label for="ReceptorInput">Receptor:</label>
+                            <input type="file" id="ReceptorInputInput" name="ReceptorInputInput" required
+                            accept=".pdbqt,.pdb">
+                        </form>
+                        <form class="basicInput" action="basic" method="post">
+                            <label for="ReceptorInput">Receptor:</label>
+                            <input type="file" id="ReceptorInputInput" name="ReceptorInputInput" required
+                            accept=".pdbqt">
+                            <label for="FlexInput">Flex:</label>
+                            <input type="file" id="FlexInput" name="FlexInput"
+                            accept=".pdbqt">
+                            <label for="LigandInput">Ligand:</label>
+                            <input type="file" id="LigandInput" name="LigandInput" required
+                            accept=".pdbqt,.py">
+                        </form>
                     </div>
                 </div>
-                <div id = "paremetersAdvanced">
-                    <button type="button" class="collapsable2">Open Parameters Advanced</button>
+                <div id = "paremetersOutput">
+                    <button type="button" class="collapsable1">Output Parameters (Optional)</button>
+                    <div class="content2">
+                        
+                    </div>
+                </div>
+                <div id = "paremetersMisc">
+                    <button type="button" class="collapsable2">Misc Parameters (Optional)</button>
                     <div class="content2">
                         
                     </div>

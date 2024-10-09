@@ -1,0 +1,25 @@
+{
+  "name": "living-in-silico-inc.---webdev-java-html-css-p.-bootstrap-sql-",
+  "version": "1.0.0",
+  "description": "Smina web application",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "nodemon start"
+  },
+  "keywords": [
+    "Smina",
+    "Living",
+    "in",
+    "Silico"
+  ],
+  "author": "Christian, Ricardo",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.1",
+    "nodemon": "^3.1.7",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  }
+}
