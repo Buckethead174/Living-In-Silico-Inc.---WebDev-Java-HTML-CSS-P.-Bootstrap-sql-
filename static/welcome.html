@@ -6,36 +6,41 @@
         <title>
             capstone test
         </title>
-        <link rel="stylesheet" href="styles/main.css">
+        <link rel="stylesheet" href="../styles/main.css">
     </head>
 
     <body>
         <div class="label">
-            <img class="logo" src="Photos/living.png">
+            <img class="logo" src="../Photos/living.png">
             
             <span class="company-Label">
                 Living In Sillico
             </span> 
         </div>
         <div class = "testing">
-            
             <div class = "parameters">
                 <div id = "paremetersBasic">
                     <div class="content1">
-                        <button type="button">Previous Output?</button>
+                        <span class = "param_text">
+                            Parameters
+                        </span>
+                        
+                        <button type="button" class="previous">Previous Output?</button>
                         <form class="inputField" action="InputPrev" method="Post">
                             <label for="ReceptorInput">Receptor:</label>
                             <input type="file" id="ReceptorInputInput" name="ReceptorInputInput" required
                             accept=".pdbqt,.pdb">
                         </form>
                         <form class="basicInput" action="basic" method="post">
-                            <label for="ReceptorInput">Receptor:</label>
+                            <label for="ReceptorInput" class="receptor">Receptor:</label>
                             <input type="file" id="ReceptorInputInput" name="ReceptorInputInput" required
                             accept=".pdbqt">
-                            <label for="FlexInput">Flex:</label>
+                            <br/>
+                            <label for="FlexInput" class="flex">Flex:</label>
                             <input type="file" id="FlexInput" name="FlexInput"
                             accept=".pdbqt">
-                            <label for="LigandInput">Ligand:</label>
+                            <br/>
+                            <label for="LigandInput" class="ligand">Ligand:</label>
                             <input type="file" id="LigandInput" name="LigandInput" required
                             accept=".pdbqt,.py">
                         </form>
@@ -56,13 +61,22 @@
             </div>
 
             <div class = "docking">
-
+                <div class = "docking_words">
+                    Docking Box Output
+                </div>
+                <div class = "animation">
+                    <img class="test1" src="../Photos/living.png">
+                    <img class="test1" src="../Photos/living.png">
+                </div>
             </div>
 
             <div class = "run">
-
+                <button type="button" class="run_button">Run</button>
+                <span class="Vina"> Vina Command: </span>
+                <input type="text" id="Vina_text" name="Vina_text" class="Vina_text">
             </div>
         </div>
         <script src="index.js"></script>
     </body>
+    <! This is a test comment-->
 </html>
