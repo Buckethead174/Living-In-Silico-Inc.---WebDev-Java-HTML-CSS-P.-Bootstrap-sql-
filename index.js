@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
         cb(null, 'userData/'); //folder where data is sent
     }, 
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); //add a timestamp to avoid file collision
+        cb(null, file.originalname); //add a timestamp to avoid file collision
     }
 });
 
@@ -53,7 +53,7 @@ app.post('/basic', upload.fields([
 
     if(!receptor && !ligand)
     {
-        return res.status(400).send('No files uploaed. Please upload a receptor and ligand.')
+        return res.status(400).send('No files uploaded. Please upload a receptor and ligand.')
     }
 
     //get the filenames
