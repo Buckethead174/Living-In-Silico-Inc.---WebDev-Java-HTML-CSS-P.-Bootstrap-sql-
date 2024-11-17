@@ -1,18 +1,15 @@
 const express = require('express')
 const path = require('path')
 const engine = require('express-handlebars')
-const multer = require("multer")
+const multer = require('multer')
 
 const app = express()
 const port = 8080
 
 //Smina variables
 //critical variables
-const xCenter = 0.0, yCenter = 0.0, zCenter = 0.0
-const xBox = 0.0. yBox = 0.0, zBox = 0.0
-const cpu = 0, exhaust = 0
-const LFilename = "", RFilename = ""
-const SminaLine = ""
+LFilename = "", RFilename = "";
+SminaLine = "";
 
 //setting up handlebars engine
 app.engine("handlebars", engine.engine())
@@ -24,51 +21,81 @@ app.use(express.urlencoded({ extended: true }));
 //setting the public folder for access of css
 app.use('/public', express.static('./public'));
 
-//setting up the multer for file uploading
-const upload = multer({
-    dest: 'userData/',   //folder where data is sent
-    limits: {fileSize: 20 * 1024 * 1024},
-})
+//setting up the multer for multiple file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'userData/'); //folder where data is sent
+    }, 
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); //add a timestamp to avoid file collision
+    }
+});
+
+//set up multer to handle two fields
+const upload = multer({ storage: storage, limits: {fileSize: 20 * 1024 * 1024 } });
 
 //direct user to the main page on load up
 app.get('/', (req,res) =>{
-    const context = {
-        name: "Jon Doe"
-    }
-    res.render("home", context)
+    res.render("home")
 })
 
-app.post('basic', upload.any('ligand', 'receptor'), (req, res) => {
+app.post('/basic', upload.fields([
+    {name: 'receptor', maxCount: 1},    //handle one receptor
+    {name: 'ligand', maxCount: 1}       //handle one ligand
+]), (req, res) => {
 
     //grab all smina variables
     const { xCenter, yCenter, zCenter,
             xBox, yBox, zBox,
             cpu, exhaust } = req.body;
-    const { ligand, receptor } = req.file;  //File handled by Multer
+    const receptor = req.files['receptor'] ? req.files['receptor'][0] : null;
+    const ligand = req.files['ligand'] ? req.files['ligand'][0] : null;
+
+    if(!receptor && !ligand)
+    {
+        return res.status(400).send('No files uploaed. Please upload a receptor and ligand.')
+    }
 
     //get the filenames
     LFilename = ligand.originalname;
     RFilename = receptor.originalname;
 
-    //check if file is uploaded
-    if (!ligand || !receptor) {
-        return res.status(400).send('No file uploaded');
+    //confirm submission in console
+    console.log('Form submitted with Smina Variables\n');
+    if(receptor) {
+        console.log('Receptor uploaded: ${RFilename}\n')
+    }
+    if(ligand) {
+        console.log('ligand uploaded: ${LFilename}\n')
     }
 
-    //confirm submission in console
-    console.log('Form submitted with Smina Variables');
-
-    cminaLine = buildSmina( xCenter, yCenter, zCenter,
+    //builds the smina commandline
+    SminaLine = buildSmina( xCenter, yCenter, zCenter,
                             xBox, yBox, zBox,
-                            cpu, exhaust)
-                            LFilename, RFilename;
+                            cpu, exhaust,
+                            LFilename, RFilename)
+    const context = {
+        SminaLine
+    }
 
-    res.render(home, SminaLine);
+    console.log("Smina line built: " + SminaLine)
+    
+    //renders the same page with the smina command and output
+    res.render("home", context);//pass the data to the front end
 })
 
-function buildSmina(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaust)
+function buildSmina(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaust, LFilename, RFilename)
 {
-    const line = ""
+    const line =    "--receptor userdata/" + RFilename +
+                    " --ligand userdata/" + LFilename +
+                    " --center_x " + xCenter +
+                    " --center_y " + yCenter +
+                    " --center_z " + zCenter +
+                    " --cpu " + cpu +
+                    " --exhaustiveness " + exhaust +
+                    " --size_x " + xBox + 
+                    " --size_y " + yBox +
+                    " --size_z " + zBox;
 
     return line;
 }
