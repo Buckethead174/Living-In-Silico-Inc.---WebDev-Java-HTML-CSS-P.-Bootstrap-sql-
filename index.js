@@ -2,14 +2,17 @@ const express = require('express')
 const path = require('path')
 const engine = require('express-handlebars')
 const multer = require('multer')
+const { exec } = require('child_process')
 
 const app = express()
 const port = 8080
 
 //Smina variables
 //critical variables
-LFilename = "", RFilename = "";
+LFilename = "", RFilename = "", ReturnFile = "";
 SminaLine = "";
+SminaBackend = "";
+logFile = "";
 
 //setting up handlebars engine
 app.engine("handlebars", engine.engine())
@@ -51,6 +54,9 @@ app.post('/basic', upload.fields([
     const receptor = req.files['receptor'] ? req.files['receptor'][0] : null;
     const ligand = req.files['ligand'] ? req.files['ligand'][0] : null;
 
+    console.log("\nExhaust: " + exhaust);
+    //console.log("\nTest: " + test);
+
     if(!receptor && !ligand)
     {
         return res.status(400).send('No files uploaded. Please upload a receptor and ligand.')
@@ -70,10 +76,26 @@ app.post('/basic', upload.fields([
     }
 
     //builds the smina commandline
-    SminaLine = buildSmina( xCenter, yCenter, zCenter,
+    SminaLine = buildSminaUser( xCenter, yCenter, zCenter,
                             xBox, yBox, zBox,
                             cpu, exhaust,
-                            LFilename, RFilename)
+                            LFilename, RFilename);
+
+    SminaBackend = buildSminaBack( xCenter, yCenter, zCenter,
+                            xBox, yBox, zBox,
+                            cpu, exhaust,
+                            LFilename, RFilename);
+
+    /*exec(SminaBackend, (error, stdout, stderr) => {
+        if(error) {
+            console.error('Error: ' + error);
+        }
+    })*/
+
+    ReturnFile = "result.pdbqt"
+    logFile = "output.txt"
+
+    //serves information to user
     const context = {
         SminaLine
     }
@@ -84,10 +106,29 @@ app.post('/basic', upload.fields([
     res.render("home", context);//pass the data to the front end
 })
 
-function buildSmina(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaust, LFilename, RFilename)
+//build smina line for the backend
+function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaust, LFilename, RFilename)
 {
-    const line =    "--receptor userdata/" + RFilename +
+    const line =    "smina --receptor userdata/" + RFilename +
                     " --ligand userdata/" + LFilename +
+                    " --center_x " + xCenter +
+                    " --center_y " + yCenter +
+                    " --center_z " + zCenter +
+                    " --cpu " + cpu +
+                    " --exhaustiveness " + exhaust +
+                    " --size_x " + xBox + 
+                    " --size_y " + yBox +
+                    " --size_z " + zBox +
+                    " --out userOutput/result.pdbqt --log userOutput/output.txt";
+
+    return line;
+}
+
+//build smina line for the user
+function buildSminaUser(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaust, LFilename, RFilename)
+{
+    const line =    "smina --receptor " + RFilename +
+                    " --ligand " + LFilename +
                     " --center_x " + xCenter +
                     " --center_y " + yCenter +
                     " --center_z " + zCenter +
