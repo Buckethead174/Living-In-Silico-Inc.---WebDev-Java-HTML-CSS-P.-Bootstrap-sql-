@@ -49,18 +49,6 @@
                         </form>
                     </div>
                 </div>
-                <div id = "paremetersOutput">
-                    <button type="button" class="collapsable1">Output Parameters (Optional)</button>
-                    <div class="content2">
-                        
-                    </div>
-                </div>
-                <div id = "paremetersMisc">
-                    <button type="button" class="collapsable2">Misc Parameters (Optional)</button>
-                    <div class="content2">
-                        
-                    </div>
-                </div>
             </div>
 
             <div class = "docking">
@@ -71,12 +59,18 @@
                     <img class="test1" src="/Photos/living.png">
                     <img class="test1" src="/Photos/living.png">
                 </div>
+                <div>
+                    {{Download}}
+                </div>
             </div>
 
             <div class = "run">
-                <button type="button" class="run_button">Run</button>
+                <form class="SminaRun" action="run" method="get">
+                    <input type="submit">
+                </form>
                 <span class="Vina"> Vina Command: </span>
                 <p>Smina: {{SminaLine}}</p>
+                <p>Completion: {{finished}}</p>
             </div>
         </div>
         <script src="index.js"></script>

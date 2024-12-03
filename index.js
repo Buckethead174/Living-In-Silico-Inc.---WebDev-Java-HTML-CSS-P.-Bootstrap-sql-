@@ -3,6 +3,8 @@ const path = require('path')
 const engine = require('express-handlebars')
 const multer = require('multer')
 const { exec } = require('child_process')
+const fs = require('fs');
+const archiver = require('archiver');
 
 const app = express()
 const port = 8080
@@ -54,7 +56,7 @@ app.post('/basic', upload.fields([
     const receptor = req.files['receptor'] ? req.files['receptor'][0] : null;
     const ligand = req.files['ligand'] ? req.files['ligand'][0] : null;
 
-    console.log("\nExhaust: " + exhaust);
+    //console.log("\nExhaust: " + exhaust);
     //console.log("\nTest: " + test);
 
     if(!receptor && !ligand)
@@ -69,10 +71,10 @@ app.post('/basic', upload.fields([
     //confirm submission in console
     console.log('Form submitted with Smina Variables\n');
     if(receptor) {
-        console.log('Receptor uploaded: ${RFilename}\n')
+        console.log(`Receptor uploaded: ${RFilename}\n`)
     }
     if(ligand) {
-        console.log('ligand uploaded: ${LFilename}\n')
+        console.log(`ligand uploaded: ${LFilename}\n`)
     }
 
     //builds the smina commandline
@@ -81,29 +83,78 @@ app.post('/basic', upload.fields([
                             cpu, exhaust,
                             LFilename, RFilename);
 
+    //prep a line for the backend as well
     SminaBackend = buildSminaBack( xCenter, yCenter, zCenter,
                             xBox, yBox, zBox,
                             cpu, exhaust,
                             LFilename, RFilename);
-
-    /*exec(SminaBackend, (error, stdout, stderr) => {
-        if(error) {
-            console.error('Error: ' + error);
-        }
-    })*/
-
-    ReturnFile = "result.pdbqt"
-    logFile = "output.txt"
 
     //serves information to user
     const context = {
         SminaLine
     }
 
+    //report smina line creation
     console.log("Smina line built: " + SminaLine)
     
     //renders the same page with the smina command and output
     res.render("home", context);//pass the data to the front end
+})
+
+//run smina command line on button press, uses awaiting command to render after finish
+app.get('/run', (req, res) => {
+
+    console.log("\nBackend line built: " + SminaBackend)
+
+    const child = exec(SminaBackend);
+
+    let output = '';
+    let error = '';
+
+    child.stdout.on('data', (data) => {
+        output += data.toString();
+    })
+
+    child.stderr.on('data', (data) => {
+        error += data.toString();
+    })
+
+    child.on('close', (code) => {
+        if(code === 0) {
+            res.render('home', {finished: 'Smina Scoring completed',
+                                Download: '<a href="/download">Download Results</a>'
+            })
+            console.log('\nTask Successful');
+        } else {
+            console.log('Task failed: ' + error)
+        }
+    })
+
+    ReturnFile = "userOutput/result.pdbqt"
+    logFile = "userOutput/output.txt"
+})
+
+//Allows the user to download the zipped data of the smina scoring
+app.get('/download', (req, res) => {
+    const output = fs.createWriteStream(path.join(__dirname, 'userOutput', 'userZip.zip'))
+    const archive = archiver('zip', {
+        zlib: { level: 9} //maximum compression
+    })
+
+    archive.pipe(output);
+
+    archive.file(path.join(__dirname, 'userOutput', 'result.pdbqt'), {name: 'result.pdbqt'})
+    archive.file(path.join(__dirname, 'userOutput', 'output.txt'), {name: 'output.txt'})
+
+    archive.finalize();
+
+    output.on('close', () => {
+        res.download(path.join(__dirname, 'userOutput', 'userZip.zip'), 'userZip.zip', (err) => {
+            if(err) {
+                console.log('Error Downloading zipped file: ' + err)
+            }
+        });
+    });
 })
 
 //build smina line for the backend
