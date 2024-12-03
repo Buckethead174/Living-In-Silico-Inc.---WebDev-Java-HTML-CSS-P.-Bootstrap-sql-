@@ -12,3 +12,5 @@ To install smina:
 3. In CMD type 'conda install conda-forge::smina' and 'conda install conda-forge::openbabel'
 
 After these have both finished installing, the website is ready to run and to run Smina scoring.
+
+To start to website : 'npm start'
