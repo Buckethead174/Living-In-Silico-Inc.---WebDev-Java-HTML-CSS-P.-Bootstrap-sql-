@@ -6,12 +6,12 @@
         <title>
             capstone test
         </title>
-        <link rel="stylesheet" href="../styles/main.css">
+        <link rel="stylesheet" href="../public/main.css">
     </head>
 
     <body>
         <div class="label">
-            <img class="logo" src="../Photos/living.png">
+            <img class="logo" src="../pics/living.png">
             
             <span class="company-Label">
                 Living In Sillico
@@ -46,18 +46,7 @@
                         </form>
                     </div>
                 </div>
-                <div id = "paremetersOutput">
-                    <button type="button" class="collapsable1">Output Parameters (Optional)</button>
-                    <div class="content2">
-                        
-                    </div>
-                </div>
-                <div id = "paremetersMisc">
-                    <button type="button" class="collapsable2">Misc Parameters (Optional)</button>
-                    <div class="content2">
-                        
-                    </div>
-                </div>
+                
             </div>
 
             <div class = "docking">
@@ -71,12 +60,13 @@
             </div>
 
             <div class = "run">
-                <button type="button" class="run_button">Run</button>
+                <button type="button" class="run_button" onclick="uploadAndRunSmina">Run</button>
                 <span class="Vina"> Vina Command: </span>
                 <input type="text" id="Vina_text" name="Vina_text" class="Vina_text">
             </div>
+            <iframe id="download_frame" style="display:none;"></iframe>
         </div>
         <script src="index.js"></script>
     </body>
-    <! This is a test comment-->
+    
 </html>
