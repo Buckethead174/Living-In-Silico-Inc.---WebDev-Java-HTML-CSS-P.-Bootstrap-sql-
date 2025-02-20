@@ -121,10 +121,11 @@ app.get('/run', (req, res) => {
 
     child.on('close', (code) => {
         if(code === 0) {
-            res.render('home', {finished: 'Smina Scoring completed',})
+            res.render('home', {finished: 'Smina Scoring completed', download: 'Download Ready'})
             console.log('\nTask Successful');
         } else {
             console.log('Task failed: ' + error)
+            res.render('home', {finished: "Smina Scoring failed: " + error})
         }
     })
 
