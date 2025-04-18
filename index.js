@@ -198,41 +198,6 @@ app.get('/run', async (req, res) => {
 
     res.render('home', {finish: 'Smina Scoring completed', Download: 'Download Ready', txtOut})
     console.log('\nTask Successful' + '\n\n' + txtOut);
-
-        /*
-        const child = exec(SminaBackend[i]);
-
-        child.stdout.on('data', (data) => {
-            output += data.toString();
-        })
-    
-        child.stderr.on('data', (data) => {
-            error += data.toString();
-        })
-
-        child.on('close', (code) => {
-            console.log("\nExecutionComplete\n")
-            if(code === 0) {
-                fs.readFile(filePath, 'utf-8', (err, out) => {
-                    if(err) {
-                        return res.status(500).send("Error reading file: " + err);
-                    }
-                    console.log("\nFile read")
-                    txtOut =+ (out + "\n\n");
-                    console.log(txtOut)
-                })
-                i++
-                if((i) == SminaBackend.length)
-                {
-                    res.render('home', {finish: 'Smina Scoring completed', Download: 'Download Ready', SminaOut: txtOut})
-                    console.log('\nTask Successful' + '\n\n' + txtOut);
-                }
-            } else {
-                console.log('Task failed: ' + error)
-                res.render('home', {finish: "Smina Scoring failed: " + error})
-            }
-        })
-        */
 })
 
 //Allows the user to download the zipped data of the smina scoring
