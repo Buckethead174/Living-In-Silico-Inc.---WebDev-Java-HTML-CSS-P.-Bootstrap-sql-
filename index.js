@@ -5,16 +5,20 @@ const multer = require('multer')
 const { exec } = require('child_process')
 const fs = require('fs');
 const archiver = require('archiver');
+const { finished } = require('stream')
 
 const app = express()
 const port = 8080
 
 //Smina variables
 //critical variables
-LFilename = "", RFilename = "", ReturnFile = "";
-SminaLine = "";
-SminaBackend = "";
-logFile = "";
+LFilename = "", RFilename = "";
+SminaLine = [];
+SminaBackend = [];
+txtOut = "";
+const DeleteFileTime = 30 * 60 * 1000; //20 minute
+ligands = [];
+ZipNames = [];
 
 //setting up handlebars engine
 app.engine("handlebars", engine.engine())
@@ -39,6 +43,33 @@ const storage = multer.diskStorage({
 //set up multer to handle two fields
 const upload = multer({ storage: storage, limits: {fileSize: 20 * 1024 * 1024 } });
 
+//this functions stops folder override
+function createUniqueFolder(basename, parentDir) {
+    let counter = 1;
+    let fileInt = 1;
+    let folderPath = path.join(parentDir, "userOuts", basename + "_" + counter);
+
+    while(fs.existsSync(folderPath)){
+        folderPath = path.join(parentDir, "userOuts", `${basename}_${counter}`);
+        fileInt = counter;
+        counter++;
+    }
+
+    console.log("\nCounter = " + counter + "\n");
+
+    fs.mkdirSync(folderPath, {recursive: true});
+
+
+    setTimeout(() => {
+        fs.unlink(folderPath, err => {
+            if (err) console('Error deleting user data:', err);
+            else console.log('Folder deleted: ', `${basename}_${counter}`);
+        });
+    }, DeleteFileTime);
+
+    return `${basename}_` + fileInt;
+}
+
 //direct user to the main page on load up
 app.get('/', (req,res) =>{
     res.render("home")
@@ -46,26 +77,49 @@ app.get('/', (req,res) =>{
 
 app.post('/basic', upload.fields([
     {name: 'receptor', maxCount: 1},    //handle one receptor
-    {name: 'ligand', maxCount: 1}       //handle one ligand
+    {name: 'ligand', maxCount: 20}       //handle 20 ligand
 ]), (req, res) => {
+
+    //deletes files after a certain amount of time
+    req.files['receptor'].forEach(file =>{
+        setTimeout(() => {
+            fs.unlink(file.path, err => {
+                if (err) console('Error deleting user data:', err);
+                else console.log('User file deleted: ', file.filename);
+            });
+        }, DeleteFileTime);
+    });
+
+    //reworked this file deletion period, to grab the filenames and the files for ligands
+    ligandCounter = 0;
+    req.files['ligand'].forEach(file =>{
+        setTimeout(() => {
+            fs.unlink(file.path, err => {
+                if (err) console('Error deleting user data:', err);
+                else console.log('User file deleted: ', file.filename);
+            });
+        }, DeleteFileTime);
+
+        const ligand = req.files['ligand'] ? req.files['ligand'][ligandCounter] : null;
+        ligands[ligandCounter] = ligand.originalname;
+        ligandCounter++;
+    });
 
     //grab all smina variables
     const { xCenter, yCenter, zCenter,
             xBox, yBox, zBox,
             cpu, exhaust } = req.body;
     const receptor = req.files['receptor'] ? req.files['receptor'][0] : null;
-    const ligand = req.files['ligand'] ? req.files['ligand'][0] : null;
 
     //console.log("\nExhaust: " + exhaust);
     //console.log("\nTest: " + test);
 
-    if(!receptor && !ligand)
+    if(!receptor && !ligands[0])
     {
         return res.status(400).send('No files uploaded. Please upload a receptor and ligand.')
     }
 
-    //get the filenames
-    LFilename = ligand.originalname;
+    //get the receptor filename
     RFilename = receptor.originalname;
 
     //confirm submission in console
@@ -73,82 +127,132 @@ app.post('/basic', upload.fields([
     if(receptor) {
         console.log(`Receptor uploaded: ${RFilename}\n`)
     }
-    if(ligand) {
-        console.log(`ligand uploaded: ${LFilename}\n`)
+    for(i = 0; i < ligands.length; i++)
+    {
+        console.log(`ligand uploaded: ${ligands[i]}\n`)
     }
+    
+    //builds the smina commandline for user and backend
+    frontText = "";
+    backendText = "";
+    for(i = 0; i < ligands.length; i++)
+    {
+        SminaLine[i] = buildSminaUser( xCenter, yCenter, zCenter,
+            xBox, yBox, zBox,
+            cpu, exhaust,
+            ligands[i], RFilename);
 
-    //builds the smina commandline
-    SminaLine = buildSminaUser( xCenter, yCenter, zCenter,
-                            xBox, yBox, zBox,
-                            cpu, exhaust,
-                            LFilename, RFilename);
+        SminaBackend[i] = buildSminaBack( xCenter, yCenter, zCenter,
+            xBox, yBox, zBox,
+            cpu, exhaust,
+            ligands[i], RFilename, i);
 
-    //prep a line for the backend as well
-    SminaBackend = buildSminaBack( xCenter, yCenter, zCenter,
-                            xBox, yBox, zBox,
-                            cpu, exhaust,
-                            LFilename, RFilename);
+        frontText += (i+1) + " " + SminaLine[i] + "\n\n";
+        backendText += (i+1) + " " + SminaBackend[i] + "\n\n";
+    }
 
     //serves information to user
     const context = {
-        SminaLine
+        SminaLine: frontText,
+        finish: 'Hit submit, then wait 5 minutes'
     }
 
     //report smina line creation
-    console.log("Smina line built: " + SminaLine)
+    console.log("Smina lines built: " + frontText);
+    console.log("\nBackend lines built: " + backendText);
     
     //renders the same page with the smina command and output
     res.render("home", context);//pass the data to the front end
 })
 
+function runCommand(cmd, res) {
+    return new Promise((resolve, reject) => {
+        const process = exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error running command ${cmd}: `, error);
+                reject(error);
+                res.render('home', { finish: "Smina Scoring failed: " + error })
+            }
+            else {
+                console.log(`\nCommand ${cmd} completed.`);
+                txtOut += stdout + "\n\n"
+                console.log(stdout);
+                resolve(stdout)
+            }
+        })//process
+    })//promise
+}//end of function
+
 //run smina command line on button press, uses awaiting command to render after finish
-app.get('/run', (req, res) => {
+app.get('/run', async (req, res) => {
 
-    console.log("\nBackend line built: " + SminaBackend)
-
-    const child = exec(SminaBackend);
-
-    let output = '';
-    let error = '';
-
-    child.stdout.on('data', (data) => {
-        output += data.toString();
-    })
-
-    child.stderr.on('data', (data) => {
-        error += data.toString();
-    })
-
-    child.on('close', (code) => {
-        if(code === 0) {
-            res.render('home', {finished: 'Smina Scoring completed', download: 'Download Ready'})
-            console.log('\nTask Successful');
-        } else {
-            console.log('Task failed: ' + error)
-            res.render('home', {finished: "Smina Scoring failed: " + error})
+    for (i = 0; i<SminaBackend.length; i++) {
+        console.log(`\nRunning: ${SminaBackend[i]}`);
+        try {
+            await runCommand(SminaBackend[i], res);
+        } catch (err) {
+            console.error(`Failed on commad: ${SminaBackend[i]}`)
+            break;
         }
-    })
+    }
 
-    ReturnFile = "userOutput/result.pdbqt"
-    logFile = "userOutput/output.txt"
+    res.render('home', {finish: 'Smina Scoring completed', Download: 'Download Ready', txtOut})
+    console.log('\nTask Successful' + '\n\n' + txtOut);
+
+        /*
+        const child = exec(SminaBackend[i]);
+
+        child.stdout.on('data', (data) => {
+            output += data.toString();
+        })
+    
+        child.stderr.on('data', (data) => {
+            error += data.toString();
+        })
+
+        child.on('close', (code) => {
+            console.log("\nExecutionComplete\n")
+            if(code === 0) {
+                fs.readFile(filePath, 'utf-8', (err, out) => {
+                    if(err) {
+                        return res.status(500).send("Error reading file: " + err);
+                    }
+                    console.log("\nFile read")
+                    txtOut =+ (out + "\n\n");
+                    console.log(txtOut)
+                })
+                i++
+                if((i) == SminaBackend.length)
+                {
+                    res.render('home', {finish: 'Smina Scoring completed', Download: 'Download Ready', SminaOut: txtOut})
+                    console.log('\nTask Successful' + '\n\n' + txtOut);
+                }
+            } else {
+                console.log('Task failed: ' + error)
+                res.render('home', {finish: "Smina Scoring failed: " + error})
+            }
+        })
+        */
 })
 
 //Allows the user to download the zipped data of the smina scoring
 app.get('/download', (req, res) => {
-    const output = fs.createWriteStream(path.join(__dirname, 'userOutput', 'userZip.zip'))
+    const output = fs.createWriteStream(path.join(__dirname, 'userOuts', 'userZip.zip'))
     const archive = archiver('zip', {
         zlib: { level: 9} //maximum compression
     })
 
     archive.pipe(output);
 
-    archive.file(path.join(__dirname, 'userOutput', 'result.pdbqt'), {name: 'result.pdbqt'})
-    archive.file(path.join(__dirname, 'userOutput', 'output.txt'), {name: 'output.txt'})
+    for(i = 0; i<ZipNames.length; i++){
+        archive.file(path.join(__dirname, 'userOuts', ZipNames[i], 'output.txt'), {name: 'output.txt' + ([i]+1)})
+        archive.file(path.join(__dirname, 'userOuts', ZipNames[i], 'result.pdbqt'), {name: 'result.pdbqt' + ([i]+1)})  
+    }
 
     archive.finalize();
 
     output.on('close', () => {
-        res.download(path.join(__dirname, 'userOutput', 'userZip.zip'), 'userZip.zip', (err) => {
+        res.download(path.join(__dirname, 'userOuts', 'userZip.zip'), 'userZip.zip', (err) => {
             if(err) {
                 console.log('Error Downloading zipped file: ' + err)
             }
@@ -157,8 +261,13 @@ app.get('/download', (req, res) => {
 })
 
 //build smina line for the backend
-function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaust, LFilename, RFilename)
+function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaust, LFilename, RFilename, i)
 {
+
+    folderName = createUniqueFolder("userOutput", path.join(__dirname));
+
+    ZipNames[i] = folderName;
+
     const line =    "smina --receptor userdata/" + RFilename +
                     " --ligand userdata/" + LFilename +
                     " --center_x " + xCenter +
@@ -169,7 +278,7 @@ function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaus
                     " --size_x " + xBox + 
                     " --size_y " + yBox +
                     " --size_z " + zBox +
-                    " --out userOutput/result.pdbqt --log userOutput/output.txt";
+                    ` --out userOuts/${folderName}/result.pdbqt --log userOuts/${folderName}/output.txt`;
 
     return line;
 }

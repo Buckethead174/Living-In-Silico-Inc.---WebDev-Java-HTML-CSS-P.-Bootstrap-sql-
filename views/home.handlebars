@@ -1,8 +1,8 @@
 <div class="label">
-            <img class="logo" src="/Photos/living.png">
+            <img class="logo" src="../public/Photos/living.jpg" alt="Company Logo">
             
             <span class="company-Label">
-                Living In Sillico
+                Living In Silico
             </span> 
         </div>
         <div class = "testing">
@@ -23,7 +23,7 @@
                             <label for="ligand" class="ligand">Ligand:</label>
                             <div class="contentBorder">
                             <input type="file" id="ligand" name='ligand' required
-                            accept=".pdbqt, .pdb, .sdf">
+                            accept=".pdbqt, .pdb, .sdf" multiple>
                             </div>
 
                             <br/>
@@ -74,6 +74,9 @@
                     <div id="downloadText">
                         {{Download}}
                     </div>
+                    <textarea class="scrollBox" readonly>
+                        {{txtOut}}
+                    </textarea>
                 </div>
             </div>
 
@@ -84,8 +87,9 @@
                 </form>
                 <span class="Vina"> Vina Command:</span>
                 </div>
-                <p id="Vina_text">{{SminaLine}}</p>
-                <p>Completion: <span id="sminaFin">{{finished}}</span></p>
+                <textarea id="Vina_text" readonly>{{SminaLine}}</textarea>
+                <p>Completion: <span id="sminaFin">{{finish}}</span></p>
             </div>
         </div>
-        <script src="index.js"></script>
+        <script src="index.js">
+        </script>
