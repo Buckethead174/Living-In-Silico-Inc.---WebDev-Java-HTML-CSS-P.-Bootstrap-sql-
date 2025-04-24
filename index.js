@@ -19,7 +19,7 @@ txtOut = "";
 const DeleteFileTime = 30 * 60 * 1000; //20 minute
 ligands = [];
 ZipNames = [];
-sminaPath = "./miniconda3"
+sminaPath = "./miniconda3/bin/activate"
 
 //setting up handlebars engine
 app.engine("handlebars", engine.engine())
@@ -244,7 +244,7 @@ function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaus
                     " --size_x " + xBox + 
                     " --size_y " + yBox +
                     " --size_z " + zBox +
-                    ` --out userOuts/${folderName}/result.pdbqt --log userOuts/${folderName}/output.txt`;
+                    ` --out ../../../userOuts/${folderName}/result.pdbqt --log userOuts/${folderName}/output.txt`;
 
     return line;
 }
