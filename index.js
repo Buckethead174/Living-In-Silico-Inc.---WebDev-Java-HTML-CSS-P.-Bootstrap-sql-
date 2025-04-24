@@ -19,7 +19,7 @@ txtOut = "";
 const DeleteFileTime = 30 * 60 * 1000; //20 minute
 ligands = [];
 ZipNames = [];
-sminaPath = "./sminaBin/smina"
+sminaPath = "./miniconda3"
 
 //setting up handlebars engine
 app.engine("handlebars", engine.engine())

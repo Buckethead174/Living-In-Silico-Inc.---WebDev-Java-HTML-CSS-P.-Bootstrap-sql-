@@ -6,7 +6,8 @@
   "scripts": {
     "test": "test",
     "start": "nodemon index.js",
-    "postinstall": "bash installSmina.sh"
+    "prestart": "bash installSmina.sh",
+    "setup": "bash ./setup.sh"
   },
   "keywords": [
     "Smina",
@@ -26,6 +27,7 @@
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
+    "bash": "^0.0.1",
     "nodemon": "^3.1.7"
   }
 }
