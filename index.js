@@ -244,7 +244,7 @@ function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaus
                     " --size_x " + xBox + 
                     " --size_y " + yBox +
                     " --size_z " + zBox +
-                    ` --out ../../../userOuts/${folderName}/result.pdbqt --log userOuts/${folderName}/output.txt`;
+                    ` --out ../../../userOuts/${folderName}/result.pdbqt --log ../../../userOuts/${folderName}/output.txt`;
 
     return line;
 }
