@@ -19,6 +19,7 @@ txtOut = "";
 const DeleteFileTime = 30 * 60 * 1000; //20 minute
 ligands = [];
 ZipNames = [];
+sminaPath = "./sminaBin/smina"
 
 //setting up handlebars engine
 app.engine("handlebars", engine.engine())
@@ -167,7 +168,7 @@ app.post('/basic', upload.fields([
 
 function runCommand(cmd, res) {
     return new Promise((resolve, reject) => {
-        const process = exec(cmd, (error, stdout, stderr) => {
+        const process = exec(sminaPath, cmd, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error running command ${cmd}: `, error);
                 reject(error);
