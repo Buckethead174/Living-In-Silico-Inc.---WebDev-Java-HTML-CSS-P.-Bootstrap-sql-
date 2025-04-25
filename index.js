@@ -5,7 +5,6 @@ const multer = require('multer')
 const { exec } = require('child_process')
 const fs = require('fs');
 const archiver = require('archiver');
-const { finished } = require('stream')
 
 const app = express()
 const port = 8080
@@ -30,6 +29,11 @@ app.set("views", path.join(__dirname, "views"))
 app.use(express.urlencoded({ extended: true }));
 //setting the public folder for access of css
 app.use('/public', express.static('./public'));
+
+//any routes not defined give 404 error
+app.get('*', (req, res) => {
+    res.status(404).send('Page not found');
+})
 
 //setting up the multer for multiple file uploads
 const storage = multer.diskStorage({
@@ -216,6 +220,8 @@ app.get('/download', (req, res) => {
     }
 
     archive.finalize();
+
+    res.setHeader('Content-Type', 'Output/zip');
 
     output.on('close', () => {
         res.download(path.join(__dirname, 'userOuts', 'userZip.zip'), 'userZip.zip', (err) => {
