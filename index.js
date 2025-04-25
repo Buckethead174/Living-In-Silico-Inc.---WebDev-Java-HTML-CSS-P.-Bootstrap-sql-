@@ -240,8 +240,8 @@ function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaus
 
     ZipNames[i] = folderName;
 
-    const line =    "smina --receptor userdata/" + RFilename +
-                    " --ligand userdata/" + LFilename +
+    const line =    "smina --receptor ../../../userdata/" + RFilename +
+                    " --ligand ../../../userdata/" + LFilename +
                     " --center_x " + xCenter +
                     " --center_y " + yCenter +
                     " --center_z " + zCenter +
