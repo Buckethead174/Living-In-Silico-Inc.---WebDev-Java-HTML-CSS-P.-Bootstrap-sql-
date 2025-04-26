@@ -7,7 +7,7 @@ const fs = require('fs');
 const archiver = require('archiver');
 
 const app = express()
-const port = 8080
+const port = process.env.PORT || 8080;
 
 //Smina variables
 //critical variables
