@@ -30,11 +30,6 @@ app.use(express.urlencoded({ extended: true }));
 //setting the public folder for access of css
 app.use('/public', express.static('./public'));
 
-//any routes not defined give 404 error
-app.get('*', (req, res) => {
-    res.status(404).send('Page not found');
-})
-
 //setting up the multer for multiple file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -271,6 +266,11 @@ function buildSminaUser(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaus
 
     return line;
 }
+
+//404 error for none defined routes, has to be last.
+app.use((req, res, next) => {
+    res.status(404).send('404 Not Found');
+  });
 
 //Useful for setting up the initlization for sever
 //listening and port messaging
