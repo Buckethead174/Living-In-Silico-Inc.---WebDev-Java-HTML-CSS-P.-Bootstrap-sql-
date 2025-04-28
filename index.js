@@ -5,7 +5,6 @@ const multer = require('multer')
 const { exec } = require('child_process')
 const fs = require('fs');
 const archiver = require('archiver');
-const { finished } = require('stream')
 
 const app = express()
 const port = 8080
@@ -171,7 +170,7 @@ function runCommand(cmd, res) {
             if (error) {
                 console.error(`Error running command ${cmd}: `, error);
                 reject(error);
-                res.render('home', { finish: "Smina Scoring failed: " + error })
+                txtOut = error;
             }
             else {
                 console.log(`\nCommand ${cmd} completed.`);
@@ -192,6 +191,7 @@ app.get('/run', async (req, res) => {
             await runCommand(SminaBackend[i], res);
         } catch (err) {
             console.error(`Failed on commad: ${SminaBackend[i]}`)
+            res.render('home', {finish: 'Smina Scoring failed', txtOut})
             break;
         }
     }
@@ -233,8 +233,8 @@ function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaus
 
     ZipNames[i] = folderName;
 
-    const line =    "smina --receptor userdata/" + RFilename +
-                    " --ligand userdata/" + LFilename +
+    const line =    "smina --receptor " + __dirname + "/userdata/" + RFilename +
+                    " --ligand " + __dirname + "/userdata/" + LFilename +
                     " --center_x " + xCenter +
                     " --center_y " + yCenter +
                     " --center_z " + zCenter +
@@ -243,7 +243,7 @@ function buildSminaBack(xCenter, yCenter, zCenter, xBox, yBox, zBox, cpu, exhaus
                     " --size_x " + xBox + 
                     " --size_y " + yBox +
                     " --size_z " + zBox +
-                    ` --out userOuts/${folderName}/result.pdbqt --log userOuts/${folderName}/output.txt`;
+                    ` --out ${__dirname}/userOuts/${folderName}/result.pdbqt --log ${__dirname}/userOuts/${folderName}/output.txt`;
 
     return line;
 }
